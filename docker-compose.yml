@@ -1,0 +1,35 @@
+version: "3"
+
+services:
+  frontend:
+    image: tiny/fe
+    ports:
+      - "3000:3000"
+    environment:
+      - BACKEND_PORT=5000
+      - BACKEND_HOST=backend
+    links:
+      - backend
+
+  backend:
+    image: tiny/be
+    ports:
+      - "5000:5000"
+    links:
+      - postgres
+    env_file:
+      - process.env
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5555:5432"
+    env_file:
+      - database.env
+  flyway:
+    image: flyway/flyway:latest
+    command: -configFiles=/flyway/conf/flyway.config -locations=filesystem:/flyway/sql -connectRetries=60 migrate
+    volumes:
+      - ./sql_versions:/flyway/sql
+      - ./docker-flyway.config:/flyway/conf/flyway.config
+    depends_on:
+      - postgres
