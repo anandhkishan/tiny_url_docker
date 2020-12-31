@@ -1,4 +1,6 @@
 FROM node:10-alpine
+RUN apk add nginx
+RUN echo "daemon off;" >> /etc/nginx/nginx.conf
 MAINTAINER anandhkishan
 WORKDIR /usr/src/app
 RUN apk update
@@ -8,7 +10,9 @@ RUN \
 
 WORKDIR /usr/src/app/TinyUrl-Nodejs/frontend/app
 RUN npm install
-
-
-EXPOSE 3000
-CMD [ "npm", "start" ]
+RUN npm run-script build
+RUN cp -r build /var/www
+COPY ./nginx.conf /etc/nginx/nginx.conf
+RUN mkdir -p /run/nginx
+EXPOSE 80
+ENTRYPOINT ["nginx", "-g", "daemon off;"]
